@@ -1,0 +1,36 @@
+version: '2'
+volumes:
+  prometheus-data: {}
+  grafana_data: {}
+
+services:
+  mnist-api:
+    container_name: mnist-api
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    restart: 'on-failure'
+    ports:
+      - 8000:8000
+  prometheus:
+    container_name: prometheus-app
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - 9090:9090
+  grafana:
+    container_name: grafana-app
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - 3000:3000
